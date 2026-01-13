@@ -1,82 +1,100 @@
-local CategoriesModule = {}
+local CatalogFilters = {}
 
-CategoriesModule.Categories = {
-	{
-		name = "All Items",
+CatalogFilters.Categories = {
+	All = {
 		categoryId = 1,
-		subcategories = {},
+		assetTypeIds = {
+			11,
+			2,
+			12,
+			17,
+			18,
+			19,
+			8,
+			41,
+			42,
+			43,
+			44,
+			45,
+			46,
+			47,
+			61,
+			64,
+			65,
+			66,
+			67,
+			68,
+			69,
+			72,
+		},
+		bundleTypeIds = { 1, 2, 3, 4 },
 	},
-	{
-		name = "Body",
+
+	Body = {
 		categoryId = 18,
 		subcategories = {
-			{ name = "Full Bodies", subcategoryId = 37 },
-			{ name = "Hair", subcategoryId = 20 },
-			{ name = "Heads", subcategoryId = 66 },
-			{ name = "Classic Heads", subcategoryId = 15 },
-			{ name = "Classic Faces", subcategoryId = 10 },
+			FullBodies = {
+				subcategoryId = 37,
+				bundleTypeIds = { 1 },
+			},
+			Hair = {
+				subcategoryId = 20,
+				assetTypeIds = { 41 },
+			},
+			DynamicHeads = {
+				subcategoryId = 66,
+				bundleTypeIds = { 4 },
+			},
+			ClassicHeads = {
+				subcategoryId = 15,
+				assetTypeIds = { 17 },
+			},
+			ClassicFaces = {
+				subcategoryId = 10,
+				assetTypeIds = { 18 },
+			},
 		},
 	},
-	{
-		name = "Clothing",
+
+	Clothing = {
 		categoryId = 3,
 		subcategories = {
-			{ name = "T-Shirts", subcategoryId = 58 },
-			{ name = "Shirts", subcategoryId = 59 },
-			{ name = "Sweaters", subcategoryId = 62 },
-			{ name = "Jackets", subcategoryId = 61 },
-			{ name = "Pants", subcategoryId = 60 },
-			{ name = "Shorts", subcategoryId = 63 },
-			{ name = "Dresses & Skirts", subcategoryId = 65 },
-			{ name = "Shoes", subcategoryId = 64 },
-			{ name = "Classic Shirts", subcategoryId = 56 },
-			{ name = "Classic T-Shirts", subcategoryId = 55 },
-			{ name = "Classic Pants", subcategoryId = 57 },
+			TShirts = { subcategoryId = 58, assetTypeIds = { 64 } },
+			Shirts = { subcategoryId = 59, assetTypeIds = { 65 } },
+			Sweaters = { subcategoryId = 62, assetTypeIds = { 68 } },
+			Jackets = { subcategoryId = 61, assetTypeIds = { 67 } },
+			Pants = { subcategoryId = 60, assetTypeIds = { 66 } },
+			Shorts = { subcategoryId = 63, assetTypeIds = { 69 } },
+			DressesSkirts = { subcategoryId = 65, assetTypeIds = { 72 } },
+			Shoes = { subcategoryId = 64, bundleTypeIds = { 3 } },
+
+			ClassicShirts = { subcategoryId = 56, assetTypeIds = { 11 } },
+			ClassicTShirts = { subcategoryId = 55, assetTypeIds = { 2 } },
+			ClassicPants = { subcategoryId = 57, assetTypeIds = { 12 } },
 		},
 	},
-	{
-		name = "Accessories",
+
+	Accessories = {
 		categoryId = 11,
 		subcategories = {
-			{ name = "Head", subcategoryId = 54 },
-			{ name = "Face", subcategoryId = 21 },
-			{ name = "Neck", subcategoryId = 22 },
-			{ name = "Shoulder", subcategoryId = 23 },
-			{ name = "Front", subcategoryId = 24 },
-			{ name = "Back", subcategoryId = 25 },
-			{ name = "Waist", subcategoryId = 26 },
-			{ name = "Gear", subcategoryId = 5 },
+			Head = { subcategoryId = 54, assetTypeIds = { 8 } },
+			Face = { subcategoryId = 21, assetTypeIds = { 42 } },
+			Neck = { subcategoryId = 22, assetTypeIds = { 43 } },
+			Shoulder = { subcategoryId = 23, assetTypeIds = { 44 } },
+			Front = { subcategoryId = 24, assetTypeIds = { 45 } },
+			Back = { subcategoryId = 25, assetTypeIds = { 46 } },
+			Waist = { subcategoryId = 26, assetTypeIds = { 47 } },
+			Gear = { subcategoryId = 5, assetTypeIds = { 19 } },
 		},
 	},
-	{
-		name = "Animations",
+
+	Animations = {
 		categoryId = 12,
 		subcategories = {
-			{ name = "Bundles", subcategoryId = 38 },
-			{ name = "Emotes", subcategoryId = 39 },
+			Bundles = { subcategoryId = 38, bundleTypeIds = { 2 } },
+			Emotes = { subcategoryId = 39, assetTypeIds = { 61 } },
 		},
 	},
 }
 
-function CategoriesModule.GetCategoryByName(name)
-	for _, cat in ipairs(CategoriesModule.Categories) do
-		if cat.name == name then
-			return cat
-		end
-	end
-	return nil
-end
-
-function CategoriesModule.GetSubcategoryByName(categoryName, subcategoryName)
-	local cat = CategoriesModule.GetCategoryByName(categoryName)
-	if cat and cat.subcategories then
-		for _, sub in ipairs(cat.subcategories) do
-			if sub.name == subcategoryName then
-				return sub
-			end
-		end
-	end
-	return nil
-end
-
-return CategoriesModule
+return CatalogFilters

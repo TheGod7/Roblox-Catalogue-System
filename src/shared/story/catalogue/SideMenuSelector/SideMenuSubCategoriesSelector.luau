@@ -1,7 +1,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local React = require(ReplicatedStorage.Packages.React)
 local ReactRoblox = require(ReplicatedStorage.Packages.ReactRoblox)
-local Component = require(ReplicatedStorage.Shared.components.SideMenu.SideMenuHeader)
+
+local Component = require(ReplicatedStorage.Shared.components.catalogue.SideMenuSelector.SideMenuSubCategoriesSelector)
 
 local e = React.createElement
 
