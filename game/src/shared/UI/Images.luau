@@ -1,11 +1,11 @@
 local Icons = {
 	BackgroundRobloxAvatarImage = 92691541419335,
-	Filter = 104216813561368,
-	Search = 75999850037751,
-	Close = 80041616701831,
+	Filter = 70378591086380,
+	Search = 119681458262829,
+	Close = 123238586224192,
 }
 
-local BASE_ASSET_URL = "http://www.roblox.com/asset/?id="
+local BASE_ASSET_URL = "rbxassetid://"
 
 return {
 	Icons = Icons,

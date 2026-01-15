@@ -56,6 +56,7 @@ return function(props: SideMenuSelectorProps)
 		Corner = e("UICorner", {
 			CornerRadius = UDim.new(0, 8),
 		}),
+
 		BottomMask = e("Frame", {
 			Size = UDim2.fromScale(1, 1),
 			AnchorPoint = Vector2.new(0, 0),

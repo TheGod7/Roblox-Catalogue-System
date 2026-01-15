@@ -4,9 +4,8 @@ local React = require(ReplicatedStorage.Packages.React)
 local e = React.createElement
 
 export type SelectorButtonProps = {
-	Title: string,
+	Image: string,
 	Active: boolean?,
-	TextSize: number?,
 	Position: UDim2?,
 	AnchorPoint: Vector2?,
 	OnClick: (() -> ())?,
@@ -30,7 +29,6 @@ return function(props: SelectorButtonProps)
 	end
 
 	local useFlex = if props.UseFlex == nil then true else props.UseFlex
-
 	local buttonSize = if useFlex then UDim2.fromScale(0, 1) else (props.CustomSize or UDim2.fromScale(0, 1))
 
 	local children = {}
@@ -49,20 +47,34 @@ return function(props: SelectorButtonProps)
 			children,
 			e("Frame", {
 				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-				Size = UDim2.fromScale(1, 0.1),
+				Size = UDim2.fromScale(1, 0.08),
 				BackgroundTransparency = 0,
 				AnchorPoint = Vector2.new(0, 0),
 				Position = UDim2.fromScale(0, 1),
+				BorderSizePixel = 0,
 			})
 		)
 	end
 
-	return e("TextButton", {
-		Text = props.Title or "Button",
+	table.insert(
+		children,
+		e("ImageLabel", {
+			Image = props.Image,
+			BackgroundTransparency = 1,
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = UDim2.fromScale(0.8, 0.8),
+			ScaleType = Enum.ScaleType.Fit,
+		}, {
+			Aspect = e("UIAspectRatioConstraint", {
+				AspectRatio = 1,
+			}),
+		})
+	)
+
+	return e("ImageButton", {
 		Size = buttonSize,
 		AutoButtonColor = false,
-		TextSize = props.TextSize or 14,
-		TextColor3 = Color3.fromRGB(255, 255, 255),
 		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
 		BackgroundTransparency = transparency,
 		AnchorPoint = props.AnchorPoint or Vector2.new(0.5, 0.5),
