@@ -170,6 +170,8 @@ return function(props: TextInputProps)
 			StrokeColor = props.StrokeColor or Color3.fromRGB(0, 0, 0),
 			StrokeThickness = props.StrokeThickness or 1,
 
+			ImageColor = props.LeftIconColor,
+
 			OnClick = props.LeftOnPress,
 		})
 	end
@@ -196,6 +198,7 @@ return function(props: TextInputProps)
 			StrokeColor = props.StrokeColor or Color3.fromRGB(0, 0, 0),
 			StrokeThickness = props.StrokeThickness or 1,
 
+			ImageColor = props.RightIconColor,
 			OnClick = props.RightOnPress,
 		})
 	end
