@@ -1,7 +1,7 @@
 local Icons = {
 	BackgroundRobloxAvatarImage = 92691541419335,
 	Filter = 70378591086380,
-	Search = 119681458262829,
+	Search = 108634535754555,
 	Close = 123238586224192,
 }
 

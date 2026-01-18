@@ -1,6 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local React = require(ReplicatedStorage.Packages.React)
-local CatalogueApi = require(ReplicatedStorage.Shared.api.CatalogueApi)
 
 local e = React.createElement
 
@@ -10,22 +9,59 @@ local SideMenuCategorySelector =
 local SideMenuSubCategoriesSelector =
 	require(ReplicatedStorage.Shared.components.catalogue.SideMenuSelector.SideMenuSubCategoriesSelector)
 
-local function getFirstCategory()
-	for name in pairs(CatalogFilters.Categories) do
-		return name
-	end
-	return nil
+if not CatalogFilters or type(CatalogFilters) ~= "table" then
+	CatalogFilters = { Categories = {} }
 end
 
-return function()
+if not CatalogFilters.Categories then
+	CatalogFilters.Categories = {}
+end
+
+local function getFirstCategory()
+	return next(CatalogFilters.Categories)
+end
+
+export type Props = {
+	SetFilters: ((update: (any) -> any) -> ())?,
+	SetItems: (any) -> any,
+}
+
+return function(props: Props)
 	local initialCategory = getFirstCategory()
 
 	local selectedCategory, setSelectedCategory = React.useState(initialCategory)
 	local subCategories, setSubCategories = React.useState({})
 	local subCategorySelected, setSubCategorySelected = React.useState(nil)
 
+	local function updateFilters(patch)
+		if not props.SetFilters then
+			return
+		end
+
+		props.SetItems({})
+
+		props.SetFilters(function(prev)
+			local newFilters = {}
+
+			if type(prev) == "table" then
+				for k, v in pairs(prev) do
+					newFilters[k] = v
+				end
+			end
+
+			for k, v in pairs(patch) do
+				newFilters[k] = v
+			end
+
+			return newFilters
+		end)
+	end
+
 	React.useEffect(function()
 		if not selectedCategory then
+			setSubCategories({})
+			setSubCategorySelected(nil)
+			props.SetItems({})
 			return
 		end
 
@@ -33,8 +69,12 @@ return function()
 
 		if categoryData and categoryData.subcategories then
 			local subs = {}
+
 			for subName, subData in pairs(categoryData.subcategories) do
-				table.insert(subs, { Name = subName, Data = subData })
+				table.insert(subs, {
+					Name = subName,
+					Data = subData,
+				})
 			end
 
 			table.sort(subs, function(a, b)
@@ -45,27 +85,30 @@ return function()
 
 			if #subs > 0 then
 				setSubCategorySelected(subs[1].Name)
+				updateFilters({
+					Category = selectedCategory,
+					Subcategory = subs[1].Name,
+				})
 			else
 				setSubCategorySelected(nil)
 			end
 		else
 			setSubCategories({})
 			setSubCategorySelected(nil)
+			updateFilters({
+				Category = selectedCategory,
+				Subcategory = nil,
+			})
 		end
 	end, { selectedCategory })
 
-	React.useEffect(function()
-		if not selectedCategory or not subCategorySelected then
-			return
-		end
+	local function setFilterSubCategory(newSubCategory)
+		setSubCategorySelected(newSubCategory)
 
-		local result = CatalogueApi.Search({
-			Category = selectedCategory,
-			Subcategory = subCategorySelected,
+		updateFilters({
+			Subcategory = newSubCategory,
 		})
-
-		print(result)
-	end, { selectedCategory, subCategorySelected })
+	end
 
 	return e("Frame", {
 		Size = UDim2.fromScale(1, 0.1),
@@ -75,19 +118,22 @@ return function()
 			FillDirection = Enum.FillDirection.Vertical,
 			Padding = UDim.new(0.02, 0),
 		}),
+
 		Stroke = e("UIStroke", {
 			Color = Color3.fromRGB(0, 0, 0),
 			Thickness = 1,
 		}),
+
 		CategorySelector = e(SideMenuCategorySelector, {
 			Categories = CatalogFilters.Categories,
 			SelectedCategory = selectedCategory,
 			OnCategorySelected = setSelectedCategory,
 		}),
+
 		SubCategorySelector = e(SideMenuSubCategoriesSelector, {
 			SubCategories = subCategories,
 			SelectedSubCategory = subCategorySelected,
-			OnSubCategorySelected = setSubCategorySelected,
+			OnSubCategorySelected = setFilterSubCategory,
 		}),
 	})
 end

@@ -1,133 +1,138 @@
 local HttpService = game:GetService("HttpService")
 
-local CatalogCategories = require(script.Parent.CatalogueCategories)
+local CatalogueCategories = require(script.Parent.CatalogueCategories)
+
+type Json = any
+export type Filters = {
+	Category: string?,
+	Subcategory: string?,
+	Keyword: string?,
+	MinPrice: number?,
+	MaxPrice: number?,
+	Limit: number?,
+	Cursor: string?,
+}
 
 local CatalogService = {}
 
-local SEARCH_URL = "https://catalog.roblox.com/v1/search/items/details"
-local ITEM_DETAILS_URL = "https://catalog.roblox.com/v1/catalog/items/details"
+local BASE_URL = "https://c8f6ca1ff7f2.ngrok-free.app/v1"
 
-local function buildQuery(params)
-	local query = {}
+local ENDPOINTS = {
+	Search = "/search/items/details",
+	ItemDetails = "/catalog/items/details",
+}
 
-	for key, value in pairs(params) do
-		if value ~= nil then
-			table.insert(query, key .. "=" .. HttpService:UrlEncode(tostring(value)))
-		end
-	end
+local CACHE_TTL = 30
+local Cache: { [string]: { time: number, data: Json } } = {}
 
-	return table.concat(query, "&")
+local ResolvedCategories = {}
+for name, cat in pairs(CatalogueCategories.Categories) do
+	ResolvedCategories[name] = {
+		id = cat.categoryId,
+		sub = cat.subcategories or {},
+	}
 end
 
-local function get(url)
-	local success, response = pcall(function()
+local function buildQuery(params: { [string]: any }): string
+	local parts = {}
+	for key, value in pairs(params) do
+		if value ~= nil then
+			parts[#parts + 1] = key .. "=" .. HttpService:UrlEncode(tostring(value))
+		end
+	end
+	return table.concat(parts, "&")
+end
+
+local function httpGet(url: string): Json?
+	local cached = Cache[url]
+	local now = os.clock()
+
+	if cached and (now - cached.time) < CACHE_TTL then
+		return cached.data
+	end
+
+	local ok, response = pcall(function()
 		return HttpService:GetAsync(url)
 	end)
 
-	if not success then
-		warn("[CatalogService] GET failed:", response)
+	if not ok then
 		return nil
 	end
 
-	return HttpService:JSONDecode(response)
+	local decodedOk, decoded = pcall(function()
+		return HttpService:JSONDecode(response)
+	end)
+
+	if not decodedOk then
+		return nil
+	end
+
+	Cache[url] = {
+		time = now,
+		data = decoded,
+	}
+
+	return decoded
 end
 
-local function resolveCategory(categoryName)
-	local category = CatalogCategories.Categories[categoryName]
-	assert(category, "Unknown category: " .. tostring(categoryName))
-	return category.categoryId
-end
-
-local function resolveSubcategory(categoryName, subcategoryName)
-	local category = CatalogCategories.Categories[categoryName]
-	assert(category, "Unknown category: " .. tostring(categoryName))
-	assert(category.subcategories, "Category has no subcategories: " .. categoryName)
-
-	local sub = category.subcategories[subcategoryName]
-	assert(sub, "Unknown subcategory: " .. tostring(subcategoryName))
-
-	return sub.subcategoryId, sub.assetTypeIds, sub.bundleTypeIds
-end
-
-function CatalogService.Search(filters)
-	assert(type(filters) == "table", "filters table required")
-	assert(filters.Category, "Category name is required")
-	assert(filters.Subcategory, "Subcategory name is required")
+function CatalogService.Search(filters: Filters): Json?
+	assert(type(filters) == "table")
 
 	if filters.MinPrice and filters.MaxPrice then
-		assert(filters.MinPrice <= filters.MaxPrice, "MinPrice must be <= MaxPrice")
+		assert(filters.MinPrice <= filters.MaxPrice)
 	end
 
-	local categoryId = resolveCategory(filters.Category)
-	local subcategoryId = select(1, resolveSubcategory(filters.Category, filters.Subcategory))
-
-	local query = buildQuery({
-		Category = categoryId,
-		Subcategory = subcategoryId,
+	local queryParams = {
+		Keyword = filters.Keyword,
 		MinPrice = filters.MinPrice,
 		MaxPrice = filters.MaxPrice,
-		Keyword = filters.Keyword,
 		Limit = filters.Limit or 30,
 		cursor = filters.Cursor,
-	})
+	}
 
-	local response = get(SEARCH_URL .. "?" .. query)
-	if not response or not response.data then
-		return response
-	end
-
-	if filters.MinPrice or filters.MaxPrice then
-		local min = filters.MinPrice or 0
-		local max = filters.MaxPrice or math.huge
-
-		local filtered = {}
-		for _, item in ipairs(response.data) do
-			if item.price and item.price >= min and item.price <= max then
-				table.insert(filtered, item)
-			end
+	if filters.Category then
+		local cat = ResolvedCategories[filters.Category]
+		if not cat then
+			error("Unknown category")
 		end
+		queryParams.Category = cat.id
 
-		response.data = filtered
+		if filters.Subcategory then
+			local sub = cat.sub[filters.Subcategory]
+			if not sub then
+				error("Unknown subcategory")
+			end
+			queryParams.Subcategory = sub.subcategoryId
+		end
 	end
 
-	return response
+	local query = buildQuery(queryParams)
+	local url = BASE_URL .. ENDPOINTS.Search .. (query ~= "" and ("?" .. query) or "")
+
+	return httpGet(url)
 end
 
-function CatalogService.GetNextPage(previousResponse, filters)
+function CatalogService.GetNextPage(previousResponse: Json?, filters: Filters): Json?
 	if not previousResponse or not previousResponse.nextPageCursor then
 		return nil
 	end
 
-	filters.Cursor = previousResponse.nextPageCursor
-	return CatalogService.Search(filters)
+	local nextFilters = table.clone(filters)
+	nextFilters.Cursor = previousResponse.nextPageCursor
+
+	return CatalogService.Search(nextFilters)
 end
 
-function CatalogService.GetItemsById(assetIds)
-	assert(type(assetIds) == "table", "assetIds must be a table")
+function CatalogService.GetItemDetails(assetId: number): Json?
+	assert(type(assetId) == "number")
 
-	local body = { items = {} }
+	local query = buildQuery({
+		itemType = "Asset",
+		id = assetId,
+	})
 
-	for _, id in ipairs(assetIds) do
-		table.insert(body.items, {
-			itemType = "Asset",
-			id = id,
-		})
-	end
-
-	local success, response = pcall(function()
-		return HttpService:PostAsync(
-			ITEM_DETAILS_URL,
-			HttpService:JSONEncode(body),
-			Enum.HttpContentType.ApplicationJson
-		)
-	end)
-
-	if not success then
-		warn("[CatalogService] PostAsync failed:", response)
-		return nil
-	end
-
-	return HttpService:JSONDecode(response)
+	local url = BASE_URL .. ENDPOINTS.ItemDetails .. (query ~= "" and ("?" .. query) or "")
+	return httpGet(url)
 end
 
 return CatalogService
