@@ -3,27 +3,18 @@ import cors from "cors";
 
 const app = express();
 
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET"],
-  }),
-);
+app.use(cors({ origin: "*" }));
+app.use(express.json());
 
 app.use(async (req, res) => {
   try {
-    if (req.method !== "GET") {
-      return res.status(405).json({ error: "Only GET allowed" });
-    }
-
-    const path = req.originalUrl;
-    const targetUrl = `https://catalog.roblox.com${path}`;
-
-    const r = await fetch(targetUrl, {
+    const r = await fetch(`https://catalog.roblox.com${req.originalUrl}`, {
+      method: req.method,
       headers: {
-        "User-Agent": "Mozilla/5.0",
         Accept: "application/json",
+        "Content-Type": "application/json",
       },
+      body: req.method === "GET" ? undefined : JSON.stringify(req.body),
     });
 
     const text = await r.text();
@@ -34,15 +25,11 @@ app.use(async (req, res) => {
       r.headers.get("content-type") || "application/json",
     );
     res.send(text);
-  } catch (err) {
-    res.status(500).json({
-      error: "Proxy failed",
-      detail: String(err),
-    });
+  } catch (e) {
+    res.status(500).json({ error: String(e) });
   }
 });
 
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`Proxy NO transparente en http://localhost:${PORT}`);
+app.listen(3000, () => {
+  console.log("Catalog curl-like proxy running on http://localhost:3000");
 });
