@@ -26,6 +26,14 @@ export type ApiResponse<T> = {
 local CatalogueApi = {}
 CatalogueApi.__index = CatalogueApi
 
+CatalogueApi.SortType = {
+	Relevance = 0,
+	Recent = 1,
+	PriceAsc = 2,
+	PriceDesc = 3,
+	Favorites = 4,
+}
+
 local BASE_URL = "https://10d61219126c.ngrok-free.app"
 local ENDPOINTS = {
 	SEARCH_ITEMS = "/v1/search/items/details",
@@ -98,6 +106,9 @@ end
 
 function CatalogueApi.buildSearchUrl(params: SearchParams?)
 	local p = params or {}
+	if p.SortType == nil then
+		p.SortType = CatalogueApi.SortType.PriceAsc
+	end
 	local query = buildQuery(p)
 	return BASE_URL .. ENDPOINTS.SEARCH_ITEMS .. query
 end
@@ -106,6 +117,18 @@ function CatalogueApi.searchItems(params: SearchParams?)
 	assert(BASE_URL ~= "", "BASE_URL no configurada. Llama CatalogueApi.configure(baseUrl)")
 	local url = CatalogueApi.buildSearchUrl(params)
 	return safeGet(url)
+end
+
+function CatalogueApi.searchItemsAsc(params: SearchParams?)
+	local p = params or {}
+	p.SortType = CatalogueApi.SortType.PriceAsc
+	return CatalogueApi.searchItems(p)
+end
+
+function CatalogueApi.searchItemsDesc(params: SearchParams?)
+	local p = params or {}
+	p.SortType = CatalogueApi.SortType.PriceDesc
+	return CatalogueApi.searchItems(p)
 end
 
 function CatalogueApi.getItemsDetails(itemsRefs: { ItemRef })
