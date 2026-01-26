@@ -9,6 +9,8 @@ ReactRoot.__index = ReactRoot
 export type ReactRoot = {
 	_screenGui: ScreenGui,
 	_root: ReactRoblox.RootType,
+	mount: (element: any) -> nil,
+	Destroy: (self: ReactRoot) -> nil,
 }
 
 function ReactRoot.new(): ReactRoot
@@ -33,6 +35,7 @@ function ReactRoot._init(self: ReactRoot)
 	screenGui.IgnoreGuiInset = true
 	screenGui.ResetOnSpawn = false
 	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	screenGui.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
 	screenGui.ClipToDeviceSafeArea = false
 	screenGui.Parent = playerGui
 
