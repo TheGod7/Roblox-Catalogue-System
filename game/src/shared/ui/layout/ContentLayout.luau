@@ -34,7 +34,7 @@ return function()
 	local currentStyle, CurrentApi = ReactSpring.useSpring(function()
 		return {
 			scale = 0,
-			config = { tension = 400, friction = 30 },
+			config = { tension = 400, friction = 30, clamp = true },
 			default = true,
 		}
 	end)
@@ -42,7 +42,7 @@ return function()
 	local PrevPageStyle, PrevPageApi = ReactSpring.useSpring(function()
 		return {
 			scale = 1,
-			config = { tension = 500, duration = 0.2 },
+			config = { tension = 500, duration = 0.1, clamp = true },
 			default = true,
 		}
 	end)
@@ -107,9 +107,7 @@ return function()
 			UIScale = e("UIScale", {
 				Scale = currentStyle.scale,
 			}),
-			UIAspectRatioConstraint = e("UIAspectRatioConstraint", {
-				AspectRatio = 2,
-			}),
+
 			Page = PageComponent and e(PageComponent),
 		}),
 
