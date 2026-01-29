@@ -5,4 +5,5 @@ return {
 	Catalogue = "rbxassetid://134294789971231",
 	SaveAs = "rbxassetid://101432950880445",
 	ResetAvatar = "rbxassetid://113482022130352",
+	Close = "rbxassetid://80669021526980",
 }
