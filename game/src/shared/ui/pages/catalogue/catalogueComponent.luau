@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local catalogueContentComponent = require(script.Parent.catalogueContentComponent)
 local React = require(ReplicatedStorage.Packages.React)
 local Icons = require(ReplicatedStorage.Shared.ui.Icons)
 local FiltersContext = require(ReplicatedStorage.Shared.ui.context.FiltersContext)
@@ -11,13 +12,7 @@ return function(props)
 		children = e(windowLayout, {
 			Title = "Catalogue",
 			Icon = Icons.Catalogue,
-			children = e("Frame", {
-				Size = UDim2.fromScale(1, 1),
-				Position = UDim2.fromScale(0.5, 0.5),
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				BackgroundColor3 = Color3.fromRGB(0, 255, 0),
-				BackgroundTransparency = 0,
-			}),
+			children = e(catalogueContentComponent, nil),
 		}),
 	})
 end
